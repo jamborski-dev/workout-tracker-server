@@ -27,7 +27,21 @@ router.get("/:routineId", async (req: Request, res: Response) => {
   // Fetch a specific routine for routineId and userId from database
   try {
     const routine = await prisma.routine.findUnique({
-      where: { id: Number(routineId), userId: Number(userId) }
+      where: { id: Number(routineId), userId: Number(userId) },
+      include: {
+        movements: {
+          include: {
+            sets: {
+              orderBy: {
+                order: "asc"
+              }
+            }
+          },
+          orderBy: {
+            order: "asc"
+          }
+        }
+      }
     })
 
     if (!routine) {
@@ -43,13 +57,14 @@ router.get("/:routineId", async (req: Request, res: Response) => {
 
 // POST /api/routines
 router.post("/init", async (req: Request, res: Response) => {
-  const { userId, date } = req.body
+  const { userId } = req.params
 
   try {
     const newRoutine = await prisma.routine.create({
       data: {
-        userId,
-        date: date || new Date() // Use current date if not provided
+        user: {
+          connect: { id: parseInt(userId) }
+        }
       }
     })
 
@@ -57,6 +72,22 @@ router.post("/init", async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error)
     res.status(500).json({ error: "Failed to create routine" })
+  }
+})
+
+router.patch("/:routineId", async (req: Request, res: Response) => {
+  const { userId, routineId } = req.params
+
+  try {
+    const updatedRoutine = await prisma.routine.update({
+      where: { id: Number(routineId), userId: Number(userId) },
+      data: { ...req.body }
+    })
+
+    res.json(updatedRoutine)
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: "Failed to update routine" })
   }
 })
 
@@ -103,6 +134,21 @@ router.post("/", async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error)
     res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+router.delete("/:routineId", async (req: Request, res: Response) => {
+  const { userId, routineId } = req.params
+
+  try {
+    await prisma.routine.delete({
+      where: { id: Number(routineId), userId: Number(userId) }
+    })
+
+    res.status(204).end()
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: "Failed to delete routine" })
   }
 })
 

@@ -1,7 +1,11 @@
+// TODO add back in the planned movements and sets for templates once the app is more fleshed out
+// TODO setup .env for local and dev
+
 datasource db {
-  provider  = "postgresql"
-  url       = env("SUPABASE_CONN_STRING")
-  directUrl = env("SUPABASE_CONN_STRING_DIRECT")
+  provider = "postgresql"
+  // url       = env("SUPABASE_CONN_STRING")
+  // directUrl = env("SUPABASE_CONN_STRING_DIRECT")
+  url      = env("LOCAL_POSTGRES_DB_CONN")
 }
 
 generator client {
@@ -9,12 +13,23 @@ generator client {
 }
 
 model User {
-  id               Int               @id @default(autoincrement())
-  supabaseId       String            @unique
-  email            String            @unique
-  username         String?
-  routines         Routine[]
-  routineTemplates RoutineTemplate[] // Relation to templates created by the user
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  username      String?
+  password      String
+  refreshTokens RefreshToken[]
+  routines      Routine[]
+  // routineTemplates RoutineTemplate[] // Relation to templates created by the user
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
 }
 
 model Routine {
@@ -28,57 +43,62 @@ model Routine {
 }
 
 model Movement {
-  id         Int      @id @default(autoincrement())
-  exerciseId Int
-  exercise   Exercise @relation(fields: [exerciseId], references: [id]) // Removed onDelete: Cascade
-  sets       Set[] // Relation to sets for each movement
+  id         Int           @id @default(autoincrement())
+  order      Int           @default(0)
+  exerciseId Int?
+  exercise   Exercise?     @relation(fields: [exerciseId], references: [id])
+  sets       MovementSet[]
   routineId  Int
-  routine    Routine  @relation(fields: [routineId], references: [id])
+  routine    Routine       @relation(fields: [routineId], references: [id])
+  summary    String?
   notes      String?
 }
 
-model Set {
+model MovementSet {
   id            Int      @id @default(autoincrement())
+  order         Int      @default(0)
   movementId    Int
-  movement      Movement @relation(fields: [movementId], references: [id])
-  plannedReps   Int
+  movement      Movement @relation(fields: [movementId], references: [id], onDelete: Cascade)
+  plannedReps   Int?
   actualReps    Int?
-  plannedWeight Float
+  plannedWeight Float?
   actualWeight  Float?
-  restTime      Int? // Rest time for this specific set, optional
+  restTime      Int?
 }
 
 model Exercise {
-  id               Int               @id @default(autoincrement())
-  name             String            @unique
-  description      String?
-  movements        Movement[] // Add this relation back to Movement
-  plannedMovements PlannedMovement[] // Relation back to PlannedMovement
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String?
+  muscleGroup String // TODO change to its own model later on
+  movements   Movement[]
+
+  // plannedMovements PlannedMovement[] // Relation back to PlannedMovement
 }
 
-model RoutineTemplate {
-  id               Int               @id @default(autoincrement())
-  name             String // Name of the template (e.g., "Leg Day Routine")
-  userId           Int
-  user             User              @relation(fields: [userId], references: [id])
-  plannedMovements PlannedMovement[] // Relation to predefined movements
-}
+// model RoutineTemplate {
+//   id               Int               @id @default(autoincrement())
+//   name             String // Name of the template (e.g., "Leg Day Routine")
+//   userId           Int
+//   user             User              @relation(fields: [userId], references: [id])
+//   plannedMovements PlannedMovement[] // Relation to predefined movements
+// }
 
-model PlannedMovement {
-  id                Int             @id @default(autoincrement())
-  routineTemplateId Int
-  routineTemplate   RoutineTemplate @relation(fields: [routineTemplateId], references: [id])
-  exerciseId        Int
-  exercise          Exercise        @relation(fields: [exerciseId], references: [id]) // Exercise relation
-  plannedSets       PlannedSet[] // Relation to PlannedSet for dynamic sets
-  notes             String?
-}
+// model PlannedMovement {
+//   id                Int             @id @default(autoincrement())
+//   routineTemplateId Int
+//   routineTemplate   RoutineTemplate @relation(fields: [routineTemplateId], references: [id])
+//   exerciseId        Int
+//   exercise          Exercise        @relation(fields: [exerciseId], references: [id]) // Exercise relation
+//   plannedSets       PlannedSet[] // Relation to PlannedSet for dynamic sets
+//   notes             String?
+// }
 
-model PlannedSet {
-  id                Int             @id @default(autoincrement())
-  plannedMovementId Int
-  plannedMovement   PlannedMovement @relation(fields: [plannedMovementId], references: [id])
-  plannedReps       Int
-  plannedWeight     Float
-  restTime          Int? // Optional rest time for this planned set
-}
+// model PlannedSet {
+//   id                Int             @id @default(autoincrement())
+//   plannedMovementId Int
+//   plannedMovement   PlannedMovement @relation(fields: [plannedMovementId], references: [id])
+//   plannedReps       Int
+//   plannedWeight     Float
+//   restTime          Int? // Optional rest time for this planned set
+// }

@@ -34,11 +34,11 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 // Create a new exercise
 router.post("/", async (req: Request, res: Response) => {
-  const { name, description } = req.body
+  const { name, description, muscleGroup } = req.body
 
   try {
     const newExercise = await prisma.exercise.create({
-      data: { name, description }
+      data: { name, description, muscleGroup }
     })
     res.status(201).json(newExercise)
   } catch (error) {
