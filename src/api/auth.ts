@@ -89,11 +89,14 @@ router.post("/login", loginLimiter, async (req, res) => {
       }
     })
 
-    // Set refresh token as HTTP-only cookie
+    const isProduction = process.env.NODE_ENV === "production"
+
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true, // Set to true in production (HTTPS)
-      sameSite: "none"
+      secure: isProduction, // Only set to true in production (must be HTTPS)
+      sameSite: isProduction ? "none" : "lax", // Use "Lax" for local dev
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      path: "/"
     })
 
     res.status(200).send({ accessToken })
@@ -139,6 +142,7 @@ router.post("/logout", async (req, res) => {
   const { refreshToken } = req.cookies
 
   if (!refreshToken) {
+    console.error("No refresh token found in cookies")
     return res.status(401).send({ error: "Unauthorized" })
   }
 
