@@ -23,6 +23,10 @@ app.use(morgan("dev"))
 app.use(express.json())
 app.use(cors(corsOptions))
 
+app.get("/health", (_, res) => {
+  res.status(200).send("OK")
+})
+
 app.use("/api/auth", authRouter) // Mount the auth router
 app.use("/api/users", verifyAuth, usersRouter) // Mount the users router
 app.use("/api/exercises", verifyAuth, exercisesRouter) // Mount the exercises router
