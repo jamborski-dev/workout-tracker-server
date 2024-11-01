@@ -3,6 +3,13 @@ import bcrypt from "bcrypt"
 
 const prisma = new PrismaClient()
 
+const devPassword = process.env.DEV_ACCOUNT_PASSWORD
+
+if (!devPassword) {
+  console.error("No required environment variable set!")
+  process.exit(1)
+}
+
 async function main() {
   const robskyEmail = "robsky@example.com"
   const routineId = 1
@@ -13,7 +20,7 @@ async function main() {
     create: {
       email: robskyEmail,
       username: "Robsky",
-      password: await bcrypt.hash("Just4Dev2k24!", 10)
+      password: await bcrypt.hash(devPassword!, 10)
     }
   })
 
