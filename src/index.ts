@@ -11,14 +11,16 @@ import path from "path"
 require("dotenv").config()
 
 const app = express()
-app.use(express.static(path.join(__dirname, "public")))
+
 const port = process.env.PORT || 5001
+const origin = process.env.ORIGIN || "http://localhost:5173"
 
 const corsOptions = {
-  origin: "http://localhost:5173", // Replace with your frontend URL
-  credentials: true // Allows the server to accept cookies and authorization headers
+  origin, // frontend URL
+  credentials: true // Allow cookies and authorization headers
 }
 
+app.use(express.static(path.join(__dirname, "public")))
 app.use(morgan("dev"))
 app.use(express.json())
 app.use(cors(corsOptions))
