@@ -4,42 +4,57 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import prisma from "../lib/prismaClient"
 import cookieParser from "cookie-parser"
+import rateLimit from "express-rate-limit"
+
+// Limit requests to 5 per minute
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute window
+  max: 5, // Limit each IP to 5 requests per windowMs
+  message: "Too many login attempts, please try again after a minute.",
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false // Disable the `X-RateLimit-*` headers
+})
 
 const router = express.Router()
 
 // Environment variables for secret keys
-const JWT_SECRET = process.env.JWT_SECRET || "secret"
-const REFRESH_SECRET = process.env.REFRESH_SECRET || "refresh"
+const JWT_SECRET = process.env.JWT_SECRET
+const REFRESH_SECRET = process.env.REFRESH_SECRET
+
+if (!JWT_SECRET || !REFRESH_SECRET) {
+  console.error("Missing JWT_SECRET or REFRESH_SECRET in environment variables")
+  process.exit(1)
+}
 
 // Middleware to parse cookies
 router.use(cookieParser())
 
-// User register route
-router.post("/register", async (req, res) => {
-  const { email, password } = req.body
+// // User register route
+// router.post("/register", async (req, res) => {
+//   const { email, password } = req.body
 
-  try {
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10)
+//   try {
+//     // Hash the password
+//     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create the user in the database
-    await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword
-      }
-    })
+//     // Create the user in the database
+//     await prisma.user.create({
+//       data: {
+//         email,
+//         password: hashedPassword
+//       }
+//     })
 
-    res.status(201).send({ message: "User created successfully" })
-  } catch (error) {
-    console.error(error)
+//     res.status(201).send({ message: "User created successfully" })
+//   } catch (error) {
+//     console.error(error)
 
-    res.status(500).send({ error: "Error creating user" })
-  }
-})
+//     res.status(500).send({ error: "Error creating user" })
+//   }
+// })
 
 // User login route
-router.post("/login", async (req, res) => {
+router.post("/login", loginLimiter, async (req, res) => {
   const { email, password } = req.body
 
   try {
