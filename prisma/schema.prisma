@@ -2,10 +2,10 @@
 // TODO setup .env for local and dev
 
 datasource db {
-  provider = "postgresql"
-  // url       = env("SUPABASE_CONN_STRING")
-  // directUrl = env("SUPABASE_CONN_STRING_DIRECT")
-  url      = env("LOCAL_POSTGRES_DB_CONN")
+  provider  = "postgresql"
+  url       = env("SUPABASE_DB_CONN")
+  directUrl = env("SUPABASE_DB_CONN_DIRECT")
+  // url      = env("LOCAL_POSTGRES_DB_CONN")
 }
 
 generator client {

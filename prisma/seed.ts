@@ -13,7 +13,7 @@ async function main() {
     create: {
       email: robskyEmail,
       username: "Robsky",
-      password: await bcrypt.hash("password", 10)
+      password: await bcrypt.hash("Just4Dev2k24!", 10)
     }
   })
 
