@@ -36,7 +36,11 @@ router.get("/:id", async (req: Request, res: Response) => {
 router.post("/", async (_: Request, res: Response) => {
   try {
     const newExercise = await prisma.exercise.create({
-      data: {}
+      data: {
+        name: "New Exercise",
+        description: "Description of new exercise",
+        muscleGroup: "Muscle group to target"
+      }
     })
     res.status(201).json({ id: newExercise.id })
   } catch (error) {
