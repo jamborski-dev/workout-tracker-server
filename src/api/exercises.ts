@@ -33,14 +33,10 @@ router.get("/:id", async (req: Request, res: Response) => {
 })
 
 // Create a new exercise
-router.post("/", async (req: Request, res: Response) => {
-  const { name, description, muscleGroup } = req.body
-
+router.post("/", async (_: Request, res: Response) => {
   try {
-    const newExercise = await prisma.exercise.create({
-      data: { name, description, muscleGroup }
-    })
-    res.status(201).json(newExercise)
+    const newExercise = await prisma.exercise.create({})
+    res.status(201).json({ id: newExercise.id })
   } catch (error) {
     console.error(error)
     res.status(500).json({ error: "Failed to create exercise" })
@@ -48,14 +44,13 @@ router.post("/", async (req: Request, res: Response) => {
 })
 
 // Update an exercise by ID
-router.put("/:id", async (req: Request, res: Response) => {
+router.patch("/:id", async (req: Request, res: Response) => {
   const { id } = req.params
-  const { name, description } = req.body
 
   try {
     const updatedExercise = await prisma.exercise.update({
       where: { id: parseInt(id) },
-      data: { name, description }
+      data: req.body
     })
     res.json(updatedExercise)
   } catch (error) {

@@ -89,14 +89,11 @@ router.post("/login", loginLimiter, async (req, res) => {
       }
     })
 
-    const isProduction = process.env.NODE_ENV === "production"
-
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: isProduction, // Only set to true in production (must be HTTPS)
-      sameSite: isProduction ? "none" : "lax", // Use "Lax" for local dev
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      path: "/"
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000
     })
 
     res.status(200).send({ accessToken })

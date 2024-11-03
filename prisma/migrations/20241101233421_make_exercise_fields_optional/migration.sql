@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Exercise" ALTER COLUMN "name" DROP NOT NULL,
+ALTER COLUMN "muscleGroup" DROP NOT NULL;

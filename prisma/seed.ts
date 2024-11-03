@@ -4,6 +4,7 @@ import bcrypt from "bcrypt"
 const prisma = new PrismaClient()
 
 const devPassword = process.env.DEV_ACCOUNT_PASSWORD
+const testerPassword = process.env.TESTER_ACCOUNT_PASSWORD
 
 if (!devPassword) {
   console.error("No required environment variable set!")
@@ -12,6 +13,7 @@ if (!devPassword) {
 
 async function main() {
   const robskyEmail = "robsky@example.com"
+  const testerEmail = "tester1@example.com"
   const routineId = 1
 
   const user = await prisma.user.upsert({
@@ -21,6 +23,16 @@ async function main() {
       email: robskyEmail,
       username: "Robsky",
       password: await bcrypt.hash(devPassword!, 10)
+    }
+  })
+
+  await prisma.user.upsert({
+    where: { email: testerEmail },
+    update: {},
+    create: {
+      email: testerEmail,
+      username: "Tester1",
+      password: await bcrypt.hash(testerPassword!, 10)
     }
   })
 

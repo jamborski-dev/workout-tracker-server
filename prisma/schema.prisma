@@ -68,9 +68,9 @@ model MovementSet {
 
 model Exercise {
   id          Int        @id @default(autoincrement())
-  name        String     @unique
+  name        String?    @unique
   description String?
-  muscleGroup String // TODO change to its own model later on
+  muscleGroup String? // TODO change to its own model later on
   movements   Movement[]
 
   // plannedMovements PlannedMovement[] // Relation back to PlannedMovement
