@@ -1,14 +1,14 @@
 import cors from "cors"
 import express from "express"
-import usersRouter from "./api/users"
-import exercisesRouter from "./api/exercises" // Assuming you still need this router
 import authRouter from "./api/auth"
+import workoutTrackerRouter from "./api/workout-tracker"
 import { verifyAuth } from "./middleware/verifyAuth"
 import morgan from "morgan"
 import path from "path"
 import https from "https"
 import fs from "fs"
 import http from "http"
+import cookieParser from "cookie-parser"
 
 require("dotenv").config()
 
@@ -23,7 +23,7 @@ const corsOptions = {
 }
 
 app.use("*", cors(corsOptions))
-
+app.use(cookieParser())
 app.use(express.static(path.join(__dirname, "public")))
 app.use(morgan("dev"))
 app.use(express.json())
@@ -33,10 +33,8 @@ app.get("/health", (_, res) => {
   res.status(200).send("OK")
 })
 
-// Mounting API routes
 app.use("/api/auth", authRouter)
-app.use("/api/users", verifyAuth, usersRouter)
-app.use("/api/exercises", verifyAuth, exercisesRouter)
+app.use("/api/fit", verifyAuth, workoutTrackerRouter)
 
 // Conditional HTTPS/HTTP server setup based on NODE_ENV
 if (process.env.NODE_ENV === "development") {

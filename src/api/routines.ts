@@ -1,13 +1,13 @@
 import express, { Request, Response } from "express"
 import prisma from "../lib/prismaClient"
+import { AuthenticatedRequest } from "../types/request"
 
 const router = express.Router({ mergeParams: true }) // Merge params to access userId
 
 // Get all routines for a user
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", async (req: AuthenticatedRequest, res: Response) => {
   // Fetch routines for userId from database
-  const userId = Number(req.params.userId)
-
+  const userId = Number(req.userId)
   try {
     const routines = await prisma.routine.findMany({
       where: { userId }
@@ -21,13 +21,14 @@ router.get("/", async (req: Request, res: Response) => {
 })
 
 // Get a specific routine for a user
-router.get("/:routineId", async (req: Request, res: Response) => {
-  const { userId, routineId } = req.params
+router.get("/:routineId", async (req: AuthenticatedRequest, res: Response) => {
+  const { routineId } = req.params
+  const userId = Number(req.userId)
 
   // Fetch a specific routine for routineId and userId from database
   try {
     const routine = await prisma.routine.findUnique({
-      where: { id: Number(routineId), userId: Number(userId) },
+      where: { id: Number(routineId), userId },
       include: {
         movements: {
           include: {
@@ -56,14 +57,13 @@ router.get("/:routineId", async (req: Request, res: Response) => {
 })
 
 // POST /api/routines
-router.post("/init", async (req: Request, res: Response) => {
-  const { userId } = req.params
-
+router.post("/init", async (req: AuthenticatedRequest, res: Response) => {
+  const userId = Number(req.userId)
   try {
     const newRoutine = await prisma.routine.create({
       data: {
         user: {
-          connect: { id: parseInt(userId) }
+          connect: { id: userId }
         }
       }
     })
@@ -75,12 +75,13 @@ router.post("/init", async (req: Request, res: Response) => {
   }
 })
 
-router.patch("/:routineId", async (req: Request, res: Response) => {
-  const { userId, routineId } = req.params
+router.patch("/:routineId", async (req: AuthenticatedRequest, res: Response) => {
+  const { routineId } = req.params
+  const userId = Number(req.userId)
 
   try {
     const updatedRoutine = await prisma.routine.update({
-      where: { id: Number(routineId), userId: Number(userId) },
+      where: { id: Number(routineId), userId },
       data: { ...req.body }
     })
 
@@ -92,8 +93,8 @@ router.patch("/:routineId", async (req: Request, res: Response) => {
 })
 
 // Create a new routine for a user
-router.post("/", async (req: Request, res: Response) => {
-  const { userId } = req.params
+router.post("/", async (req: AuthenticatedRequest, res: Response) => {
+  const userId = Number(req.userId)
   const { name, date, movements } = req.body // Receive the routine and movements data
 
   try {
@@ -137,12 +138,13 @@ router.post("/", async (req: Request, res: Response) => {
   }
 })
 
-router.delete("/:routineId", async (req: Request, res: Response) => {
-  const { userId, routineId } = req.params
+router.delete("/:routineId", async (req: AuthenticatedRequest, res: Response) => {
+  const userId = Number(req.userId)
+  const { routineId } = req.params
 
   try {
     await prisma.routine.delete({
-      where: { id: Number(routineId), userId: Number(userId) }
+      where: { id: Number(routineId), userId }
     })
 
     res.status(204).end()
