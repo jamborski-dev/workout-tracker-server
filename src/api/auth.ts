@@ -89,17 +89,12 @@ router.post("/login", loginLimiter, async (req, res) => {
       }
     })
 
-    const userAgent = req.get("User-Agent") || ""
-
-    // Check if the browser is Firefox or Safari, which may need the `Partitioned` attribute
-    const isStrictBrowser = /firefox|safari/i.test(userAgent)
-
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      ...(isStrictBrowser && { Partitioned: true })
+      partitioned: true // for testing if refresh token cookie will be used at all without same origin on Firefox (no domain yet)
     })
 
     res.status(200).send({ accessToken })
